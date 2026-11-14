@@ -50,19 +50,24 @@ LaserScan parseLaserScan(std::istringstream& iss, LaserType type) {
     LaserScan scan = LaserScan();
     scan.type = type;
 
-    std::string token;
-    std::size_t pos = 0;
     int numReadings = parseInt(iss);
     if (numReadings < 0) {
         throw std::runtime_error("Negative number of readings");
     }
     scan.ranges.reserve(numReadings);
 
+    double maxReading = 0;
+    double minReading = INFINITY;
     for (int i = 0; i < numReadings; i += 1) {
-        scan.ranges.push_back(parseDouble(iss));
+        double reading = parseDouble(iss);
+        scan.ranges.push_back(reading);
+        maxReading = std::max(maxReading, reading);
+        minReading = std::min(minReading, reading);
     }
 
     scan.robot = Pose2D{parseDouble(iss), parseDouble(iss), parseDouble(iss)};
+    scan.rangeMax = maxReading;
+    scan.rangeMin = minReading;
     scan.odom = Pose2D{parseDouble(iss), parseDouble(iss), parseDouble(iss)};
 
     double ipcTimestamp = parseDouble(iss);

@@ -1,6 +1,9 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <variant>
+#include <math.h>
 
 struct MessageMetadata {
     double ipcTimestamp;
@@ -25,6 +28,32 @@ struct LaserScan {
     Pose2D odom;
     Pose2D robot;
     std::vector<double> ranges;
+    double angleIncrement = M_PI / 180.0;  // rad
+    double rangeMin = 0.0;
+    double rangeMax = 80.0;
+
+    double beamAngle(size_t i) const {
+        double angleMin = (type == LaserType::Front) ? -M_PI / 2.0 : M_PI / 2.0;
+        return angleMin + i * angleIncrement;
+    }
+
+    std::vector<std::pair<double, double>> toCartesianPoints() const {
+        std::vector<std::pair<double, double>> points;
+        points.reserve(ranges.size());
+
+        for (std::size_t i = 0; i < ranges.size(); i += 1) {
+            if (ranges[i] > rangeMax) {
+                continue;
+            }
+            // if (ranges[i] >= maxValidRange - 1e-3 || ranges[i] <= rangeMin) continue;
+            double theta = beamAngle(i);
+            double x = ranges[i] * std::cos(theta);
+            double y = ranges[i] * std::sin(theta);
+            points.emplace_back(x, y); 
+        }
+
+        return points;
+    }
 };
 
 struct Odometry {
