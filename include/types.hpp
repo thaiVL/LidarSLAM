@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <math.h>
+#include <iostream>
 
 struct MessageMetadata {
     double ipcTimestamp;
@@ -63,6 +64,7 @@ struct Odometry {
 };
 
 using CLFMessage = std::variant<LaserScan, Odometry>;
+using Point = std::pair<double, double>;
 
 struct RobotState {
     std::vector<CLFMessage> messages;
