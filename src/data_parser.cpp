@@ -78,6 +78,23 @@ LaserScan parseLaserScan(std::istringstream& iss, LaserType type) {
     return scan;
 }
 
+Odometry parseOdometry(std::istringstream& iss) {
+    double x = parseDouble(iss);
+    double y = parseDouble(iss);
+    double theta = parseDouble(iss);
+    Pose2D pose = {x, y, theta};
+
+    double transVel = parseDouble(iss);
+    double rotVel = parseDouble(iss);
+    double accel = parseDouble(iss);
+
+    double ipcTimestamp = parseDouble(iss);
+    std::string ipcHostname; iss >> ipcHostname;
+    double loggerTimestamp = parseDouble(iss);
+    MessageMetadata metaata{ipcTimestamp, ipcHostname, loggerTimestamp};
+
+    return Odometry{metaata, pose, transVel, rotVel, accel};
+}
 
 RobotState parseFile(const std::string& filePath) {
     std::ifstream file(filePath);
@@ -95,6 +112,9 @@ RobotState parseFile(const std::string& filePath) {
         }},
         {"FLASER", [](std::istringstream& iss) -> CLFMessage {
             return parseLaserScan(iss, LaserType::Front);
+        }},
+        {"ODOM", [](std::istringstream& iss) -> CLFMessage {
+            return parseOdometry(iss);
         }}
     };
 
