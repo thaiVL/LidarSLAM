@@ -56,18 +56,12 @@ LaserScan parseLaserScan(std::istringstream& iss, LaserType type) {
     }
     scan.ranges.reserve(numReadings);
 
-    double maxReading = 0;
-    double minReading = INFINITY;
     for (int i = 0; i < numReadings; i += 1) {
         double reading = parseDouble(iss);
         scan.ranges.push_back(reading);
-        maxReading = std::max(maxReading, reading);
-        minReading = std::min(minReading, reading);
     }
 
     scan.robot = Pose2D{parseDouble(iss), parseDouble(iss), parseDouble(iss)};
-    scan.rangeMax = maxReading;
-    scan.rangeMin = minReading;
     scan.odom = Pose2D{parseDouble(iss), parseDouble(iss), parseDouble(iss)};
 
     double ipcTimestamp = parseDouble(iss);
@@ -85,7 +79,7 @@ LaserScan parseLaserScan(std::istringstream& iss, LaserType type) {
 }
 
 
-std::vector<CLFMessage> parseFile(const std::string& filePath) {
+RobotState parseFile(const std::string& filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
         throw std::runtime_error("Could not open file: " + filePath);
@@ -124,6 +118,23 @@ std::vector<CLFMessage> parseFile(const std::string& filePath) {
     }
 
     std::cout << "Skipped a total of " << totalSkipped << " entries." << std::endl;
+    double rearMaxRange = 0;
+    double frontMaxRange = 0;
+    for (const auto& msg: messages) {
+        std::visit([&](const auto& data) {
+            using T = std::decay_t<decltype(data)>;
+            if constexpr (std::is_same_v<T, LaserScan>) {
+                const LaserScan& scan = data;
+                if (scan.type == LaserType::Rear) {
+                    rearMaxRange = std::max(*std::max_element(scan.ranges.begin(), scan.ranges.end()), rearMaxRange);
+                } else if (scan.type == LaserType::Front) {
+                    frontMaxRange = std::max(*std::max_element(scan.ranges.begin(), scan.ranges.end()), frontMaxRange);
+                }
+            }
+        }, msg);
+    }
 
-    return messages;
+    RobotState state = {messages, frontMaxRange, rearMaxRange};
+
+    return state;
 }
