@@ -1,28 +1,44 @@
+#include <iostream>
 #include "data_parser.hpp"
 #include "visualizer.hpp"
-#include <iostream>
+#include "simulator.hpp"
+#include "util.hpp"
+
+void simulate() {
+    World world;
+    world.addRect(0, 0, 10, 8);
+    world.addRect(4, 3, 6, 5);
+    world.addRect(7.5, 6, 9, 7.5);
+
+    Pose2D pose{2, 2, 0};
+    LaserScan s = simulateScan(world, LaserType::Front, pose, 0);
+    std::vector<Point> worldPoints;
+    for (const auto& [x, y] : s.toCartesianPoints(80)) {
+        worldPoints.push_back(transformPoint(pose, x, y));
+    }
+    visualizePoints(worldPoints, &world, &pose);
+}
+
+void visualizeOneMessage(const RobotState& state, int i) {
+    std::visit(overloaded {
+        [&](const LaserScan& scan) {
+            double maxRange = (scan.type == LaserType::Rear) 
+                ? state.rearMaxRange 
+                : state.frontMaxRange;
+            visualizePoints(scan.toCartesianPoints(maxRange), nullptr, &scan.robot);
+        },
+
+        [&](const Odometry& odom) {
+            std::cout << "Cannot visualize the " << i << "th message, it is odometry" << std::endl;
+        }
+    }, state.messages[i]);
+}
+
 
 int main() {
     RobotState state = parseFile("datasets/slam_benchmarking/Intel_Research_Lab.clf");
-    // std::cout << "Parsed " << state.messages.size() << " messages" << std::endl;
-    // if (std::holds_alternative<LaserScan>(state.messages[0])) {
-    //     LaserScan& scan = std::get<LaserScan>(state.messages[0]);
-    //     std::vector<std::pair<double, double>> pts = scan.toCartesianPoints(scan.type == LaserType::Rear ? state.rearMaxRange : state.frontMaxRange);
-    //     visualizeScan(pts);
-    //     std::cout << "";
-    // }
 
-    // std::vector<Point> points;
-    // for (const auto& msg: state.messages) {
-    //     std::visit([&](const auto& data) {
-    //         using T = std::decay_t<decltype(data)>;
-    //         if constexpr (std::is_same_v<T, LaserScan>) {
-    //             const LaserScan& scan = data;
-    //             std::vector<Point> pts = scan.toCartesianPoints(scan.type == LaserType::Rear ? state.rearMaxRange : state.frontMaxRange);
-    //             points.insert(points.end(), pts.begin(), pts.end());
-    //         }
-    //     }, msg);
-    // }
-    // visualizeScan(points);
-    replayScans(state, false, 50.0);
+    // replayScans(state, false, 50.0);
+    // simulate();
+    visualizeOneMessage(state, 1);
 }

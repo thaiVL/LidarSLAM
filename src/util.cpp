@@ -6,3 +6,4 @@ Point transformPoint(const Pose2D& pose, double x, double y) {
     return { c * x - s * y + pose.x,
              s * x + c * y + pose.y };
 }
+

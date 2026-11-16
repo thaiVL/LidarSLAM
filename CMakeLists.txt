@@ -13,6 +13,7 @@ add_executable(lidar_slam
     src/data_parser.cpp
     src/visualizer.cpp
     src/util.cpp
+    src/simulator/simulator.cpp
 )
 
 target_include_directories(lidar_slam PRIVATE
