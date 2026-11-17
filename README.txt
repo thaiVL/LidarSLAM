@@ -3,3 +3,5 @@
 `cmake --build build`
 
 
+Datasets from
+http://ais.informatik.uni-freiburg.de/slamevaluation/datasets.php

@@ -7,6 +7,7 @@
 #include <functional>
 #include <cmath>
 #include <filesystem>
+#include <algorithm>
 
 double parseDouble(std::istringstream& iss) {
     std::string token;
