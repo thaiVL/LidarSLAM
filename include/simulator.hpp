@@ -79,7 +79,9 @@ struct World {
             const double PymQy = originY - line.y0;
             const double PmQxS = PxmQx * Ry - PymQy * Rx;
             const double u = PmQxS / SxR;
-            // t >= 0 and u >= 0 means infront of robot
+            // t >= 0 and u >= 0 means infront of robot, 
+            // 0 <= u <= 1 means laser hit a section of the wall
+            // 0 <= t <= bestRange means laser hit a wall that is t distance away from the point
             if (t >= 0.0 && u >= 0.0 && u <= 1.0 && t < bestRange) {
                 bestRange = t;
             }

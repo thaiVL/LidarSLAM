@@ -39,6 +39,6 @@ int main() {
     RobotState state = parseFile("datasets/slam_benchmarking/Intel_Research_Lab.clf");
 
     // replayScans(state, false, 50.0);
-    // simulate();
-    visualizeOneMessage(state, 1);
+    // visualizeOneMessage(state, 1);
+    simulate();
 }
